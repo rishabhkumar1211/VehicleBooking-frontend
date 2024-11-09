@@ -7,6 +7,8 @@ import {
   Button,
   Paper,
   Typography,
+  Alert,
+  CircularProgress,
 } from "@mui/material";
 import axios from "axios";
 
@@ -24,6 +26,7 @@ const MultiStepForm = () => {
   const [vehicleTypes, setVehicleTypes] = useState([]);
   const [vehicles, setVehicles] = useState([]);
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -44,16 +47,26 @@ const MultiStepForm = () => {
     }
   }, [formData.vehicleType]);
 
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setError("");
+      setSuccess("");
+    }, 5000);
+    return () => clearTimeout(timer);
+  }, [error, success]);
+
   const handleNext = () => {
     if (validateStep()) {
       setError("");
       setStep(step + 1);
+    } else {
+      setError("Please complete this step.");
     }
   };
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
-    setError(""); // Clear error on change
+    setError("");
   };
 
   const validateStep = () => {
@@ -84,29 +97,29 @@ const MultiStepForm = () => {
         "http://localhost:3000/api/book-vehicle",
         {
           vehicleId: formData.vehicleModel,
+          firstName: formData.firstName,
+          lastName: formData.lastName,
           startDate: formData.startDate,
           endDate: formData.endDate,
         }
       );
-      alert(response.data);
+      setSuccess(response?.data?.message);
       setStep(0);
+      setFormData({
+        firstName: "",
+        lastName: "",
+        wheels: "",
+        vehicleType: "",
+        vehicleModel: "",
+        startDate: "",
+        endDate: "",
+      });
     } catch (error) {
-      setError(error.response?.data || "Error booking vehicle.");
+      setError(error.response?.data?.error || "Error booking vehicle.");
     } finally {
       setLoading(false);
     }
   };
-
-  const renderButton = () => (
-    <Button
-      variant="contained"
-      color="primary"
-      onClick={step === 4 ? handleSubmit : handleNext}
-      disabled={!validateStep() || loading}
-    >
-      {step === 4 ? "Submit" : "Next"}
-    </Button>
-  );
 
   return (
     <div
@@ -115,22 +128,28 @@ const MultiStepForm = () => {
         justifyContent: "center",
         alignItems: "center",
         minHeight: "100vh",
-        backgroundColor: "#f0f2f5",
+        backgroundColor: "#f0f4f8",
+        padding: "1rem",
       }}
     >
       <Paper
-        elevation={3}
-        style={{
-          padding: "2rem",
-          width: "100%",
-          maxWidth: "500px",
-          textAlign: "center",
-        }}
+        elevation={4}
+        style={{ padding: "2rem", width: "100%", maxWidth: "500px" }}
       >
         <Typography variant="h5" gutterBottom>
           Vehicle Booking Form
         </Typography>
-        {error && <Typography color="error">{error}</Typography>}
+
+        {success && (
+          <Alert severity="success" onClose={() => setSuccess("")}>
+            {success}
+          </Alert>
+        )}
+        {error && (
+          <Alert severity="error" onClose={() => setError("")}>
+            {error}
+          </Alert>
+        )}
 
         {step === 0 && (
           <>
@@ -152,7 +171,6 @@ const MultiStepForm = () => {
             />
           </>
         )}
-
         {step === 1 && (
           <RadioGroup
             name="wheels"
@@ -163,7 +181,6 @@ const MultiStepForm = () => {
             <FormControlLabel value="4" control={<Radio />} label="4 Wheels" />
           </RadioGroup>
         )}
-
         {step === 2 && (
           <RadioGroup
             name="vehicleType"
@@ -180,7 +197,6 @@ const MultiStepForm = () => {
             ))}
           </RadioGroup>
         )}
-
         {step === 3 && (
           <RadioGroup
             name="vehicleModel"
@@ -197,33 +213,45 @@ const MultiStepForm = () => {
             ))}
           </RadioGroup>
         )}
-
         {step === 4 && (
           <>
             <TextField
-              label="Start Date"
               type="date"
+              label="Start Date"
               name="startDate"
               value={formData.startDate}
               onChange={handleChange}
-              InputLabelProps={{ shrink: true }}
               fullWidth
               margin="normal"
             />
             <TextField
-              label="End Date"
               type="date"
+              label="End Date"
               name="endDate"
               value={formData.endDate}
               onChange={handleChange}
-              InputLabelProps={{ shrink: true }}
               fullWidth
               margin="normal"
             />
           </>
         )}
 
-        {renderButton()}
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={step === 4 ? handleSubmit : handleNext}
+          disabled={!validateStep() || loading}
+          fullWidth
+          style={{ marginTop: "1rem" }}
+        >
+          {loading ? (
+            <CircularProgress size={24} />
+          ) : step === 4 ? (
+            "Submit"
+          ) : (
+            "Next"
+          )}
+        </Button>
       </Paper>
     </div>
   );

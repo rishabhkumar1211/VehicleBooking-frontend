@@ -51,7 +51,7 @@ const MultiStepForm = () => {
     const timer = setTimeout(() => {
       setError("");
       setSuccess("");
-    }, 5000);
+    }, 3000);
     return () => clearTimeout(timer);
   }, [error, success]);
 
@@ -99,6 +99,8 @@ const MultiStepForm = () => {
           vehicleId: formData.vehicleModel,
           firstName: formData.firstName,
           lastName: formData.lastName,
+          wheels: formData.wheels,
+          vehicleType: formData.vehicleType,
           startDate: formData.startDate,
           endDate: formData.endDate,
         }
@@ -223,6 +225,7 @@ const MultiStepForm = () => {
               onChange={handleChange}
               fullWidth
               margin="normal"
+              InputLabelProps={{ shrink: true }}
             />
             <TextField
               type="date"
@@ -232,6 +235,7 @@ const MultiStepForm = () => {
               onChange={handleChange}
               fullWidth
               margin="normal"
+              InputLabelProps={{ shrink: true }}
             />
           </>
         )}
